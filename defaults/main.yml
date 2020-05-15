@@ -1,0 +1,19 @@
+---
+imgproxy: {}
+imgproxy_default:
+  packages:
+    - docker.io
+    - python3-pip
+  docker:
+    network_name: imgproxy
+    network_subnet: 10.10.10.0/24
+    network_gateway: 10.10.10.1
+    network_iprange: 10.10.10.128/25
+    docker_image: "darthsim/imgproxy"
+    image_version: "v2.13.1"
+    container_name: imgproxy
+    expose_port: 8080
+  envvars:
+    - IMGPROXY_KEY=something
+    - IMGPROXY_SALT=somethingelse
+    - IMGPROXY_PATH_PREFIX=/get_resized

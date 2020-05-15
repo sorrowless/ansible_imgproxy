@@ -1,0 +1,92 @@
+---
+- name: Show override config
+  debug:
+    var: imgproxy
+    verbosity: 1
+
+- name: Pre-install | Merge user config data with default
+  set_fact:
+    conf: "{{ imgproxy_default | combine(imgproxy, recursive=True) }}"
+  tags:
+    - always
+
+- name: Show config
+  debug:
+    var: conf
+    verbosity: 1
+
+- name: Install needed packages
+  become: yes
+  become_user: root
+  package:
+    name: "{{ conf.packages }}"
+    state: present
+
+- name: Ensure pip packages
+  become: yes
+  become_user: root
+  pip:
+    name:
+      - docker
+      - docker-compose
+    state: present
+
+- name: Ensure docker daemon enabled
+  become: yes
+  become_user: root
+  systemd:
+    name: docker.service
+    state: started
+    enabled: yes
+
+- name: Configure network ranges for docker hosts
+  become: yes
+  become_user: root
+  docker_network:
+    name: "{{ conf.docker.network_name }}"
+    driver_options:
+      # Have to be 15 symbols or less
+      com.docker.network.bridge.name: prom_bridge
+    ipam_options:
+      subnet: '{{ conf.docker.network_subnet }}'
+      gateway: '{{ conf.docker.network_gateway }}'
+      iprange: '{{ conf.docker.network_iprange }}'
+  when: conf.docker.network_name != 'host'
+
+- name: Ensure imgproxy container
+  docker_service:
+    state: present
+    project_name: docker_imgproxy
+    definition:
+      version: '2'
+      services:
+        imgproxy:
+          image: "{{ conf.docker.docker_image }}:{{ conf.docker.image_version }}"
+          container_name: "{{ conf.docker.container_name }}"
+          ports:
+            - "127.0.0.1:{{ conf.docker.expose_port }}:{{ conf.docker.expose_port }}"
+          environment: "{{ conf.envvars }}"
+          hostname: "{{ conf.docker.container_name }}"
+          restart: always
+      networks:
+        default:
+          external:
+            name: "{{ conf.docker.network_name }}"
+  when: conf.docker.network_name != "host"
+
+- name: Ensure imgproxy container
+  docker_service:
+    state: present
+    project_name: imgproxy
+    definition:
+      version: '2'
+      services:
+        imgproxy:
+          image: "{{ conf.docker.docker_image }}:{{ conf.docker.image_version }}"
+          container_name: "{{ conf.docker.container_name }}"
+          ports:
+            - "127.0.0.1:{{ conf.docker.expose_port }}:{{ conf.docker.expose_port }}"
+          environment: "{{ conf.envvars }}"
+          hostname: "{{ conf.docker.container_name }}"
+          restart: always
+  when: conf.docker.network_name == "host"
