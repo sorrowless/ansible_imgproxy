@@ -10,7 +10,7 @@ imgproxy_default:
     network_gateway: 10.10.10.1
     network_iprange: 10.10.10.128/25
     docker_image: "darthsim/imgproxy"
-    image_version: "v2.17.1"
+    image_version: "v2.17.0"
     container_name: imgproxy
     expose_port: 8080
   envvars:
