@@ -47,10 +47,10 @@
     driver_options:
       # Have to be 15 symbols or less
       com.docker.network.bridge.name: prom_bridge
-    ipam_options:
-      subnet: '{{ conf.docker.network_subnet }}'
-      gateway: '{{ conf.docker.network_gateway }}'
-      iprange: '{{ conf.docker.network_iprange }}'
+    ipam_config:
+      - subnet: '{{ conf.docker.network_subnet }}'
+        gateway: '{{ conf.docker.network_gateway }}'
+        iprange: '{{ conf.docker.network_iprange }}'
   when: conf.docker.network_name != 'host'
 
 - name: Ensure imgproxy container
