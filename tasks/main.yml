@@ -54,7 +54,7 @@
   when: conf.docker.network_name != 'host'
 
 - name: Ensure imgproxy container
-  docker_service:
+  docker_compose:
     state: present
     project_name: docker_imgproxy
     definition:
@@ -75,7 +75,7 @@
   when: conf.docker.network_name != "host"
 
 - name: Ensure imgproxy container
-  docker_service:
+  docker_compose:
     state: present
     project_name: imgproxy
     definition:
